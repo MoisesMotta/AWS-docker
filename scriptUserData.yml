@@ -1,0 +1,38 @@
+#!/bin/bash
+# Atualizar pacotes e instalar Docker
+sudo yum update -y
+sudo amazon-linux-extras install docker -y
+sudo service docker start
+sudo usermod -a -G docker ec2-user
+
+# Instalar Docker Compose
+sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+
+# Instalar NFS client
+sudo yum install -y nfs-utils
+
+# Criar diretório para EFS
+sudo mkdir -p /mnt/efs
+
+# Montar EFS
+sudo mount -t nfs4 -o nfsvers=4.1 fs-077992b92c71071e9.efs.us-east-1.amazonaws.com:/ /mnt/efs
+
+# Adicionar ao /etc/fstab para montagem persistente
+echo "fs-077992b92c71071e9.efs.us-east-1.amazonaws.com:/ /mnt/efs nfs4 defaults,_netdev 0 0" | sudo tee -a /etc/fstab
+
+cat <<EOF > /home/ec2-user/docker-compose.yml
+version: '3'
+services:
+  wordpress:
+    image: wordpress:latest
+    ports:
+      - "80:80"
+    environment:
+      WORDPRESS_DB_HOST: database-1.cdckwaec2crm.us-east-1.rds.amazonaws.com:3306
+      WORDPRESS_DB_USER: mydbuser
+      WORDPRESS_DB_PASSWORD: mydbpassword
+      WORDPRESS_DB_NAME: mydbname
+    volumes:
+      - /mnt/efs:/var/www/html
+EOF
