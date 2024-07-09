@@ -1,6 +1,5 @@
 # Configuração da Infraestrutura na AWS para Aplicação WordPress
 
-Este guia detalha os passos para configurar a infraestrutura necessária na AWS para hospedar uma aplicação WordPress usando Docker Compose, RDS (MySQL), EFS e um Load Balancer clássico.
 
 ## Passos de Configuração
 
